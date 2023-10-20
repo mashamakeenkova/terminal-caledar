@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+
+day=$(date +%a)
+month=$(date +%B)
+day_full=$(date +%A)
+day_of_month=$(date +%d)
+
+bold=$(tput bold)
+reset=$(tput sgr0)
+
+echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset"
+echo " On the agenda today: "
+
+case $day in
+    "Mon")
+        echo "   08:00 - 12:00 Applied Computer Architecture"
+        echo "   16:00 - 19:00 Compiler Design exercise"
+        ;;
+    "Wed")
+        echo "   10:00 - 12:00 Fundamentals of Web Engineering"
+        echo "   13:00 - 15:00 Computer Architecture"
+        ;;
+    "Tue")
+        echo "    -> TODO: watch Computer Systems lecure"
+        ;;
+    "Thu")
+        echo "    -> TODO: watch Compiler Design lecture"
+        ;;
+    "Fri")
+        echo "   10:00 - 12:00 Computer Systems"
+        echo "   14:00 - 16:00 Compiler Design"
+        ;;
+    "Sat")
+        echo "   10:00 - 14:00 Longsword Practice"
+        ;;
+    "Sun")
+        echo "   T'is sunday, nothing on."
+        ;;
+    *)
+        echo "what is this"
+        ;;
+esac
