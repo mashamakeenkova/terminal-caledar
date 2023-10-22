@@ -8,35 +8,88 @@ day_of_month=$(date +%d)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
-echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset"
-echo " On the agenda today: "
+clear_data() {
+    current_date=$(date +%m/%d/%Y)
+    file="data"
+    temp_file="temp_data"
+    touch "$temp_file"
 
-case $day in
-    "Mon")
+    if [ -e "$file" ]; then
+        while IFS=';' read -r date_in_file event urgency; do
+            formatted_date=$(date -d "$date_in_file" +%m/%d/%Y)
+            if [ "$formatted_date" \> "$current_date" ]; then
+                echo "$date_in_file;$event;$urgency" >> "$temp_file"
+            fi
+
+            if [ "$formatted_date" == "$current_date" ]; then
+                echo "$date_in_file;$event;$urgency" >> "$temp_file"
+            fi
+    done < "$file"
+    mv "$temp_file" "$file"
+    else
+        echo "ERROR: data file not found!"
+    fi
+}
+
+
+process_data() {
+  #format: dd/mm/yyyy;<event>;[U|n]
+  current_date=$(date +%m/%d/%Y)
+  file="data"
+  if [ -e "$file" ]; then
+    while IFS= read -r line; do
+        IFS=';' read -r date_in_file event urgency ignored <<< "$line"
+            if [ "$date_in_file" == "$current_date" ]; then
+                if [ "$urgency" == "U" ]; then
+                    echo "$bold   (URGENT) $event $reset"
+                else
+                    echo "   $event"
+                fi
+            fi
+    done < "$file"
+  else
+    echo "File not found: $file"
+  fi
+}
+    echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset"
+    echo " On the agenda today: "
+
+    case $day in
+        "Mon")
         echo "   08:00 - 12:00 Applied Computer Architecture"
         echo "   16:00 - 19:00 Compiler Design exercise"
+        process_data
         ;;
-    "Wed")
+        "Wed")
         echo "   10:00 - 12:00 Fundamentals of Web Engineering"
         echo "   13:00 - 15:00 Computer Architecture"
+        process_data
         ;;
-    "Tue")
+        "Tue")
         echo "    -> TODO: watch Computer Systems lecure"
+        process_data
         ;;
-    "Thu")
+        "Thu")
         echo "    -> TODO: watch Compiler Design lecture"
+        process_data
         ;;
-    "Fri")
+        "Fri")
         echo "   10:00 - 12:00 Computer Systems"
         echo "   14:00 - 16:00 Compiler Design"
+        process_data
+        clear_data
         ;;
-    "Sat")
+        "Sat")
         echo "   10:00 - 14:00 Longsword Practice"
+        process_data
+        clear_data
         ;;
-    "Sun")
-        echo "   T'is sunday, nothing on."
+        "Sun")
+        echo "   T'is Sunday, nothing on."
+        process_data
+        clear_data
         ;;
-    *)
+        *)
         echo "what is this"
         ;;
 esac
