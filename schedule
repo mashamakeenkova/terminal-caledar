@@ -8,6 +8,7 @@ day_of_month=$(date +%d)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+
 clear_data() {
     current_date=$(date +%m/%d/%Y)
     file="data"
@@ -51,6 +52,38 @@ process_data() {
     echo "File not found: $file"
   fi
 }
+
+
+if [ "$1" = "--help" ]; then
+    echo "usage: --add: adds new event at date to calendar"
+    echo "--add mm/dd/yyy event [string] urgency [U|u|n]"
+fi
+
+
+if [ "$1" = "--add" ]; then
+    date_user=$2
+    event_user=$3
+    urgency=$4
+    if date -d "$date_user" "+%m/%d/%Y" >/dev/null 2>&1; then
+        date_write="date_user"
+    else
+        echo "ERROR wrong date format: expected mm/dd/yyyy"
+    fi
+
+    if [[ "$urgency" = "u" || "$urgency" = "n" ]]; then
+       urgency_write="$urgency"
+       else
+           if [[ "$urgency" = "U" ]]; then
+               urgency_write="$urgency"
+           else
+               echo "unexpected urgency string:"$urgency", expected U, u or n"
+           fi
+    fi
+
+    echo "$date_user;$event_user;$urgency" >> data
+fi
+
+if [ -z "$1" ]; then
     echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset"
     echo " On the agenda today: "
 
@@ -92,4 +125,5 @@ process_data() {
         *)
         echo "what is this"
         ;;
-esac
+ esac
+fi
