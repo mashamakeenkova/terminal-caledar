@@ -32,6 +32,25 @@ clear_data() {
     fi
 }
 
+clear_all_data() {
+    echo "are you sure you want to delete all scheduled events y/n?"
+    while true; do
+        read -s -n 1 key
+        case $key in
+            y|Y)
+                echo "clearing all scheduled events"
+                truncate -s 0 "data"
+                exit 0
+                ;;
+            n|N)
+                echo "cancelled"
+                exit 0
+                ;;
+            *)
+                echo "please type y/n"
+        esac
+    done
+}
 
 process_data() {
   #format: dd/mm/yyyy;<event>;[U|n]
@@ -44,7 +63,11 @@ process_data() {
                 if [ "$urgency" == "U" ]; then
                     echo "$bold   (URGENT) $event $reset"
                 else
-                    echo "   $event"
+                    if [ "$urgency" == "u" ]; then
+                        echo "   (URGENT) $event"
+                    else
+                        echo "   $event"
+                    fi
                 fi
             fi
     done < "$file"
@@ -55,8 +78,15 @@ process_data() {
 
 
 if [ "$1" = "--help" ]; then
-    echo "usage: --add: adds new event at date to calendar"
-    echo "--add mm/dd/yyy event [string] urgency [U|u|n]"
+    echo "$bold Don't panic! Here's how it works: $reset"
+    echo "--help: prints this helpful message"
+    echo "--add mm/dd/yyy event [string] urgency [U|u|n]: adds event to reminders"
+    echo "   urgency options: n neutral, u urgent, U very urgent"
+    echo "--clear: clears all scheduled events"
+fi
+
+if [ "$1" = "--clear" ]; then
+    clear_all_data
 fi
 
 
@@ -67,7 +97,9 @@ if [ "$1" = "--add" ]; then
     if date -d "$date_user" "+%m/%d/%Y" >/dev/null 2>&1; then
         date_write="date_user"
     else
-        echo "ERROR wrong date format: expected mm/dd/yyyy"
+        echo "ERROR: wrong date format: expected mm/dd/yyyy"
+        echo "use --help option for usage"
+        exit 0
     fi
 
     if [[ "$urgency" = "u" || "$urgency" = "n" ]]; then
@@ -76,11 +108,14 @@ if [ "$1" = "--add" ]; then
            if [[ "$urgency" = "U" ]]; then
                urgency_write="$urgency"
            else
-               echo "unexpected urgency string:"$urgency", expected U, u or n"
+               echo "ERROR: unexpected urgency string:"$urgency", expected U, u or n"
+               echo "use --help option for usage"
+               exit 0
            fi
     fi
 
     echo "$date_user;$event_user;$urgency" >> data
+    echo "evnet has been added"
 fi
 
 if [ -z "$1" ]; then
@@ -92,19 +127,23 @@ if [ -z "$1" ]; then
         echo "   08:00 - 12:00 Applied Computer Architecture"
         echo "   16:00 - 19:00 Compiler Design exercise"
         process_data
+        clear_data
         ;;
         "Wed")
         echo "   10:00 - 12:00 Fundamentals of Web Engineering"
         echo "   13:00 - 15:00 Computer Architecture"
         process_data
+        clealr_data
         ;;
         "Tue")
         echo "    -> TODO: watch Computer Systems lecure"
         process_data
+        clear_data
         ;;
         "Thu")
         echo "    -> TODO: watch Compiler Design lecture"
         process_data
+        clear_data
         ;;
         "Fri")
         echo "   10:00 - 12:00 Computer Systems"
