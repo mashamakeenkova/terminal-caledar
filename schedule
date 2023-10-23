@@ -32,14 +32,61 @@ clear_data() {
     fi
 }
 
+get_info() {
+  current_date=$(date +%m/%d/%Y)
+  line_count=0
+  today_count=0
+  urgent_count=0
+  very_urgent=0
+      while IFS=';' read -r date_in_file event urgency; do
+          ((line_count++))
+          if [ "$date_in_file" == "$current_date" ]; then
+              ((today_count++))
+          fi
+          if [ "$urgency" == "u" ]; then
+              ((urgent_count++))
+          fi
+          if [ "$urgency" == "U" ]; then
+              ((very_urgent++))
+          fi
+      done < "data"
+
+  echo "
+                 ___,___,_______,____
+                |  :::|///./||'||    L
+                |  :::|//.//|| || H)  |
+                |  :::|/.///|!!!|     | events: $line_count
+                |   _______________   | today: $today_count
+                |  |:::::::::::::::|  | urgent: $urgent_count
+                |  |_______________|  | very urgent: $very_urgent
+                |  |_______________|  | 
+                |  |_______________|  | 
+                |  |_______________|  |
+                ||_|     TODO      ||_|
+                |__|_______________|__|" 
+}
+
 clear_all_data() {
-    echo "are you sure you want to delete all scheduled events y/n?"
+    echo "are you sure you want to delete all scheduled events (y/n)?"
     while true; do
         read -s -n 1 key
         case $key in
             y|Y)
                 echo "clearing all scheduled events"
                 truncate -s 0 "data"
+                echo " 
+                 ___,___,_______,____
+                |  :::|///./||'||    L
+                |  :::|//.//|| || H)  |
+                |  :::|/.///|!!!|     | much empty
+                |   _______________   |   * cricket noises * 
+                |  |:::::::::::::::|  | 
+                |  |_______________|  |   big nothing
+                |  |_______________|  | no todos
+                |  |_______________|  | 
+                |  |_______________|  |
+                ||_|     TODO      ||_|
+                |__|_______________|__|"
                 exit 0
                 ;;
             n|N)
@@ -53,7 +100,7 @@ clear_all_data() {
 }
 
 process_data() {
-  #format: dd/mm/yyyy;<event>;[U|n]
+  #format: dd/mm/yyyy;<event>;[U|u|n]
   current_date=$(date +%m/%d/%Y)
   file="data"
   if [ -e "$file" ]; then
@@ -76,13 +123,18 @@ process_data() {
   fi
 }
 
+if [ "$1" = "--info" ]; then
+    get_info
+fi
 
 if [ "$1" = "--help" ]; then
     echo "$bold Don't panic! Here's how it works: $reset"
-    echo "--help: prints this helpful message"
-    echo "--add mm/dd/yyy event [string] urgency [U|u|n]: adds event to reminders"
-    echo "   urgency options: n neutral, u urgent, U very urgent"
-    echo "--clear: clears all scheduled events"
+    echo " --help: prints this helpful message"
+    echo " --add mm/dd/yyy event [string] urgency [U|u|n]: adds event to reminders"
+    echo " --add --today event urgency: adds event with today's date"
+    echo "    urgency options: n neutral, u urgent, U very urgent"
+    echo " --clear: clears all scheduled events"
+    echo " --info: prints informatino on scheduled events"
 fi
 
 if [ "$1" = "--clear" ]; then
@@ -95,11 +147,13 @@ if [ "$1" = "--add" ]; then
     event_user=$3
     urgency=$4
     if date -d "$date_user" "+%m/%d/%Y" >/dev/null 2>&1; then
-        date_write="date_user"
-    else
-        echo "ERROR: wrong date format: expected mm/dd/yyyy"
-        echo "use --help option for usage"
-        exit 0
+        if [ "$date_user" = "--today" ]; then
+           date_user=$(date +%m/%d/%Y)
+        else
+           echo "ERROR: wrong date format: expected mm/dd/yyyy"
+           echo "use --help option for usage"
+           exit 0
+        fi
     fi
 
     if [[ "$urgency" = "u" || "$urgency" = "n" ]]; then
@@ -115,7 +169,19 @@ if [ "$1" = "--add" ]; then
     fi
 
     echo "$date_user;$event_user;$urgency" >> data
-    echo "evnet has been added"
+    echo "
+            ___,___,_______,____
+            |  :::|///./||'||    L
+            |  :::|//.//|| || H)  |TODO added!
+            |  :::|/.///|!!!|     | TODO TODO TODO + ++
+            |   _______________   |  TODO TODO TODO TODO+
+            |  |:::::::::::::::|  | TODO TODO TODO TODO TODO + +
+            |  |_______________|  | TODO TODO TODO ++
+            |  |_______________|  |TODO TODO +  +
+            |  |_______________|  | TODO ++
+            |  |_______________|  |
+            ||_|     TODO      ||_|
+            |__|_______________|__|"
 fi
 
 if [ -z "$1" ]; then
@@ -162,7 +228,7 @@ if [ -z "$1" ]; then
         clear_data
         ;;
         *)
-        echo "what is this"
+        echo "ERROR: sth is seriously wrong, this should not happen."
         ;;
  esac
 fi
