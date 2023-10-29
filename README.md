@@ -9,12 +9,10 @@ Features:
 
 Example usage: 
 
-![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/6d1e15c0-657f-42aa-b1ce-4760ce2ec9ff)
-
---add and --today option
-
-![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/4defdfa5-e550-463c-965c-0d2591899905)
+![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/4e06f927-7b16-401e-857d-b2b3f75fa405)
 
 ![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/c59b3ea9-1160-4b9b-90d2-8736e55f7290)
+
+![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/c9d8ce63-3d6b-46bc-93c4-ddd70d39a190)
 
 ![image](https://github.com/mashamakeenkova/terminal-caledar/assets/63210615/9c25451d-54b0-4686-a1a9-410273fdae19)
