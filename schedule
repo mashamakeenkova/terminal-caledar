@@ -8,6 +8,7 @@ day_of_month=$(date +%d)
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+no_events=false
 
 clear_data() {
     current_date=$(date +%m/%d/%Y)
@@ -20,11 +21,14 @@ clear_data() {
             formatted_date=$(date -d "$date_in_file" +%m/%d/%Y)
             if [ "$formatted_date" \> "$current_date" ]; then
                 echo "$date_in_file;$event;$urgency" >> "$temp_file"
+            else
+                if [ "$formatted_date" == "$current_date" ]; then
+                echo "$date_in_file;$event;$urgency" >> "$temp_file"
+                else
+                    no_events=true
+                fi
             fi
 
-            if [ "$formatted_date" == "$current_date" ]; then
-                echo "$date_in_file;$event;$urgency" >> "$temp_file"
-            fi
     done < "$file"
     mv "$temp_file" "$file"
     else
@@ -72,7 +76,7 @@ clear_all_data() {
         read -s -n 1 key
         case $key in
             y|Y)
-                echo "clearing all scheduled events"
+                echo "clearing all scheduled events" | lolcat
                 truncate -s 0 "data"
                 echo " 
                  ___,___,_______,____
@@ -108,7 +112,7 @@ process_data() {
         IFS=';' read -r date_in_file event urgency ignored <<< "$line"
             if [ "$date_in_file" == "$current_date" ]; then
                 if [ "$urgency" == "U" ]; then
-                    echo "$bold   (URGENT) $event $reset"
+                    echo "$bold   (URGENT) $event $reset" | lolcat
                 else
                     if [ "$urgency" == "u" ]; then
                         echo "   (URGENT) $event"
@@ -128,7 +132,7 @@ if [ "$1" = "--info" ]; then
 fi
 
 if [ "$1" = "--help" ]; then
-    echo "$bold Don't panic! Here's how it works: $reset"
+    echo "$bold Don't panic!$reset" | lolcat
     echo " --help: prints this helpful message"
     echo " --add mm/dd/yyy event [string] urgency [U|u|n]: adds event to reminders"
     echo " --add --today event urgency: adds event with today's date"
@@ -169,6 +173,7 @@ if [ "$1" = "--add" ]; then
     fi
 
     echo "$date_user;$event_user;$urgency" >> data
+    echo "added new event!" | lolcat
     echo "
             ___,___,_______,____
             |  :::|///./||'||    L
@@ -185,50 +190,62 @@ if [ "$1" = "--add" ]; then
 fi
 
 if [ -z "$1" ]; then
-    echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset"
-    echo " On the agenda today: "
+    echo "$bold Greetings Master, today is $day_full, $month $day_of_month. $reset" | lolcat
+    echo "On the agenda today: "
 
     case $day in
         "Mon")
-        echo "   08:00 - 12:00 Applied Computer Architecture"
-        echo "   16:00 - 19:00 Compiler Design exercise"
+        day="Mon"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
+        ;;
+        "Wed")
+        day="Wed"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
-        "Wed")
-        echo "   10:00 - 12:00 Fundamentals of Web Engineering"
-        echo "   13:00 - 15:00 Computer Architecture"
-        process_data
-        clealr_data
-        ;;
         "Tue")
-        echo "    -> TODO: watch Computer Systems lecure"
+        day="Tue"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
         "Thu")
-        echo "    -> TODO: watch Compiler Design lecture"
+        day="Thu"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
         "Fri")
-        echo "   10:00 - 12:00 Computer Systems"
-        echo "   14:00 - 16:00 Compiler Design"
+        day="Fri"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
         "Sat")
-        echo "   10:00 - 14:00 Longsword Practice"
+        day="Sat"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
         "Sun")
-        echo "   T'is Sunday, nothing on."
+        day="Sun"
+        filename="data_weekly"
+        python weekly.py "$day" "$filename"
         process_data
         clear_data
         ;;
         *)
         echo "ERROR: sth is seriously wrong, this should not happen."
         ;;
+        #if [ "$no_events"="true" ]; then
+         #   echo "    no events, enjoy your day!"
+        #fi
  esac
 fi
